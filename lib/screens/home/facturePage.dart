@@ -129,7 +129,7 @@ class _FacturePageState extends State<FacturePage> {
                               ),
                               Row(
                                 children: [
-                                  Text('translator.translate("fact_3")'),
+                                  Text(translator.translate("fact_3")),
                                   SizedBox(
                                     width: 5,
                                   ),

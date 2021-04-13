@@ -1,5 +1,6 @@
 import 'package:delivery_f/models/client.dart';
 import 'package:delivery_f/models/order.dart';
+import 'package:delivery_f/screens/home/updateOrderPage.dart';
 import 'package:delivery_f/services/databaseHelpers/repository_service_clients.dart';
 import 'package:delivery_f/services/databaseHelpers/repository_service_orders.dart';
 import 'package:delivery_f/services/printer.dart';
@@ -67,11 +68,14 @@ class _OrdersPageState extends State<OrdersPage> {
                           child: ListTile(
                         trailing: IconButton(
                           onPressed: () {
-                            if (printer.printer != null) {
-                              printer.testPrint(printer.printer, order: order);
-                            }
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => UpdateOrderPage(
+                                          order: order,
+                                        )));
                           },
-                          icon: Icon(Icons.message),
+                          icon: Icon(Icons.edit),
                         ),
                         title: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -149,19 +153,19 @@ class _OrdersPageState extends State<OrdersPage> {
                           showDialog<String>(
                             context: context,
                             builder: (BuildContext context) => AlertDialog(
-                              title: Text(translator.translate("order_5")),
+                              title: Text(translator.translate("order_4")),
                               content: Text(
-                                translator.translate("order_6"),
+                                translator.translate("order_5"),
                               ),
                               actions: <Widget>[
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.pop(context, 'Cancel'),
-                                  child: Text(translator.translate("order_7")),
+                                  child: Text(translator.translate("order_6")),
                                 ),
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, 'OK'),
-                                  child: Text(translator.translate("order_8")),
+                                  child: Text(translator.translate("order_7")),
                                 ),
                               ],
                             ),

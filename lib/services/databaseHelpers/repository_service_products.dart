@@ -1,4 +1,5 @@
 import 'package:delivery_f/models/product.dart';
+import 'package:delivery_f/utils.dart';
 
 import '../database_creator.dart';
 
@@ -13,6 +14,7 @@ class RepositoryServiceProducts {
     for (final node in data) {
       final product = Product.fromJson(node);
       products.add(product);
+      print("${product.name} ------ ${detectArabic(product.name)}");
     }
     return products;
   }
@@ -32,7 +34,7 @@ class RepositoryServiceProducts {
     )
     VALUES (?,?,?,?,?,?,?,?)''';
     List<dynamic> params = [
-      product.name,
+      replaceSpaceByPoint(product.name),
       product.barcode,
       product.stock ?? 0,
       product.price0.toString() ?? "0",
@@ -61,7 +63,7 @@ class RepositoryServiceProducts {
     
     ''';
     List<dynamic> params = [
-      product.name,
+      replaceSpaceByPoint(product.name),
       product.barcode,
       product.stock ?? 0,
       product.price0.toString() ?? "0",

@@ -160,6 +160,28 @@ class PrintTest with ChangeNotifier {
     await printerManager.printTicket(ticket);
   }
 
+  Future<Ticket> arabicTest(PaperSize paper) async {
+    final Ticket ticket = Ticket(paper);
+    ticket.text("يوسف0",
+        styles: PosStyles(
+          codeTable: PosCodeTable.arabic,
+        ));
+    ticket.text("يوسف1",
+        styles: PosStyles(
+          codeTable: PosCodeTable.pc1001_2,
+        ));
+    ticket.text("2يوسف",
+        styles: PosStyles(
+          codeTable: PosCodeTable.wp1256,
+        ));
+    ticket.text("يوسف3",
+        styles: PosStyles(
+          codeTable: PosCodeTable.pc720,
+        ));
+
+    ticket.cut();
+  }
+
   Future<Ticket> demoReceipt(PaperSize paper, Order order) async {
     final Ticket ticket = Ticket(paper);
     bool logo = storage.getItem("logo");
