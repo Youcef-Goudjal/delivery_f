@@ -14,18 +14,20 @@ import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
 
 class UpdateOrderPage extends StatefulWidget {
-  Order order;
-  UpdateOrderPage({this.order});
+  Order oldOrder;
+  UpdateOrderPage({this.oldOrder});
   @override
   _UpdateOrderPageState createState() => _UpdateOrderPageState();
 }
 
 class _UpdateOrderPageState extends State<UpdateOrderPage> {
   List<Product> suggestionproducts = List();
+  Order newOrder;
 
   @override
   void initState() {
     super.initState();
+    newOrder = Order.clone(widget.oldOrder);
     RepositoryServiceProducts.getAllProducts().then((value) {
       suggestionproducts = value;
       setState(() {});
@@ -72,21 +74,21 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
             InkWell(
                 onTap: () {
                   setState(() {
-                    widget.order.pricing = 1;
+                    newOrder.pricing = 1;
                   });
                 },
                 child: CircleAvatar(child: Text("1"))),
             InkWell(
                 onTap: () {
                   setState(() {
-                    widget.order.pricing = 2;
+                    newOrder.pricing = 2;
                   });
                 },
                 child: CircleAvatar(child: Text("2"))),
             InkWell(
                 onTap: () {
                   setState(() {
-                    widget.order.pricing = 3;
+                    newOrder.pricing = 3;
                   });
                 },
                 child: CircleAvatar(child: Text("3"))),
@@ -138,16 +140,16 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                   Expanded(
                     child: AnimationLimiter(
                       child: ListView.builder(
-                        itemCount: widget.order.products.length + 1,
+                        itemCount: newOrder.products.length + 1,
                         itemBuilder: (BuildContext context, int index) {
-                          if (widget.order.products.length == 0) {
+                          if (newOrder.products.length == 0) {
                             return Image.asset("assets/img/out-of-stock.png");
                           }
-                          if (index == widget.order.products.length)
+                          if (index == newOrder.products.length)
                             return Container(
                               height: MediaQuery.of(context).size.height * 0.5,
                             );
-                          Product product = widget.order.products[index];
+                          Product product = newOrder.products[index];
                           return AnimationConfiguration.staggeredList(
                             position: index,
                             duration: const Duration(milliseconds: 375),
@@ -256,7 +258,7 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                                           ),
                                           TextButton(
                                             onPressed: () {
-                                              widget.order.products.removeWhere(
+                                              newOrder.products.removeWhere(
                                                   (element) =>
                                                       element.id == product.id);
                                               Navigator.pop(context, 'OK');
@@ -342,7 +344,7 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                                 (Product p) => InkWell(
                                   onTap: () {
                                     //p.quantity = 1;
-                                    widget.order.insertProduct(p);
+                                    newOrder.insertProduct(p);
                                     setState(() {});
                                   },
                                   child: Chip(label: Text(p.name)),
@@ -360,7 +362,7 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                         Expanded(
                           flex: 4,
                           child: Text(
-                            '${translator.translate("sale_14")} ${widget.order.total.toStringAsFixed(2)} \$ ',
+                            '${translator.translate("sale_14")} ${newOrder.total.toStringAsFixed(2)} \$ ',
                             style: TextStyle(fontSize: 22),
                           ),
                         ),
@@ -371,13 +373,14 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                                 fit: BoxFit.fill,
                               ),
                               onPressed: () {
-                                if (widget.order.products.length != 0) {
-                                  widget.order.paid = 0;
+                                if (newOrder.products.length != 0) {
+                                  newOrder.paid = 0;
                                   showDialog(
                                     context: context,
                                     builder: (ctx) => Dialog(
                                         child: SubmitOrder(
-                                      order: widget.order,
+                                      oldOrder: widget.oldOrder,
+                                      newOrder: newOrder,
                                     )),
                                   ).then((value) {
                                     if (value != null) {
@@ -409,16 +412,11 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                                         if (value != null) {
                                           if (value == "OK") {
                                             if (printer.printer != null) {
-                                              Order o = widget.order;
+                                              Order o = newOrder;
                                               printer.testPrint(printer.printer,
                                                   order: o);
                                             }
                                           }
-                                          setState(() {
-                                            widget.order = Order(
-                                              products: new List(),
-                                            );
-                                          });
                                         }
                                       });
                                     }
@@ -448,7 +446,7 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                               await RepositoryServiceProducts.search(value)
                                   .then((p) {
                                 p.first.quantity = 1;
-                                widget.order.insertProduct(p.first);
+                                newOrder.insertProduct(p.first);
                               }).catchError((e) {
                                 print(e);
                                 // error in database product not founded
@@ -490,7 +488,7 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
                               },
                               onSuggestionSelected: (Product suggestion) {
                                 suggestion.quantity = 1;
-                                widget.order.insertProduct(suggestion);
+                                newOrder.insertProduct(suggestion);
                                 setState(() {});
                               }),
                         ),
@@ -508,10 +506,12 @@ class _UpdateOrderPageState extends State<UpdateOrderPage> {
 }
 
 class SubmitOrder extends StatefulWidget {
-  Order order;
+  Order newOrder;
+  Order oldOrder;
 
   SubmitOrder({
-    this.order,
+    this.newOrder,
+    this.oldOrder,
   });
 
   @override
@@ -534,13 +534,13 @@ class _SubmitOrderState extends State<SubmitOrder> {
 
   @override
   void initState() {
-    total.text = widget.order.total.toString();
-    paid.text = widget.order.paid.toString();
-    rest.text = widget.order.rest.toString();
+    total.text = widget.newOrder.total.toStringAsFixed(2);
+    paid.text = widget.oldOrder.paid.toStringAsFixed(2);
+    rest.text = widget.newOrder.rest.toStringAsFixed(2);
     credit.text = "0";
-    if (widget.order.client != null) {
-      clientfiled.text = widget.order.client.fullname;
-      credit.text = widget.order.client.credits.toString();
+    if (widget.newOrder.client != null) {
+      clientfiled.text = widget.newOrder.client.fullname;
+      credit.text = widget.newOrder.client.credits.toString();
     }
     super.initState();
   }
@@ -575,7 +575,7 @@ class _SubmitOrderState extends State<SubmitOrder> {
                 keyboardType: TextInputType.number,
                 validator: (input) => input == ""
                     ? translator.translate("sale_24")
-                    : (double.parse(input) > widget.order.total)
+                    : (double.parse(input) > widget.newOrder.total)
                         ? translator.translate("sale_26")
                         : null,
                 decoration: InputDecoration(
@@ -584,7 +584,8 @@ class _SubmitOrderState extends State<SubmitOrder> {
                 ),
                 onChanged: (input) {
                   try {
-                    final restvalue = widget.order.total - double.parse(input);
+                    final restvalue =
+                        widget.newOrder.total - double.parse(input);
                     rest.text = restvalue.toString();
                   } catch (e) {
                     Fluttertoast.showToast(
@@ -632,8 +633,8 @@ class _SubmitOrderState extends State<SubmitOrder> {
                     flex: 3,
                     child: TypeAheadFormField(
                       validator: (input) {
-                        print(widget.order.client);
-                        if (widget.order.client == null) {
+                        print(widget.newOrder.client);
+                        if (widget.newOrder.client == null) {
                           return translator.translate("sale_31");
                         } else {
                           return null;
@@ -660,7 +661,7 @@ class _SubmitOrderState extends State<SubmitOrder> {
                         );
                       },
                       onSuggestionSelected: (Client suggestion) {
-                        widget.order.client = suggestion;
+                        widget.newOrder.client = suggestion;
                         credit.text = suggestion.credits.toString();
                         clientfiled.text = suggestion.fullname;
                       },
@@ -690,18 +691,22 @@ class _SubmitOrderState extends State<SubmitOrder> {
                   if (_form.currentState.validate()) {
                     if (clicks == 0) {
                       clicks++;
-                      widget.order.paid = double.parse(paid.text);
-                      widget.order.orderDate = DateTime.now();
-                      widget.order.paymentDate = DateTime.now();
+                      widget.newOrder.paid = double.parse(paid.text);
+                      widget.newOrder.orderDate = DateTime.now();
+                      widget.newOrder.paymentDate = DateTime.now();
 
-                      await RepositoryServiceOrders.addOrder(widget.order)
+                      await RepositoryServiceOrders.updateOrderOfClient(
+                              widget.oldOrder, widget.newOrder)
                           .then((value) async {
                         if (double.parse(rest.text) > 0) {
-                          widget.order.client.credits +=
+                          widget.newOrder.client.credits =
+                              widget.oldOrder.client.credits -
+                                  widget.oldOrder.rest;
+                          widget.newOrder.client.credits +=
                               double.parse(rest.text);
 
                           await RepositoryServiceClients.updateClientCredit(
-                                  widget.order.client)
+                                  widget.newOrder.client)
                               .then((value) {
                             Fluttertoast.showToast(
                                 msg: translator.translate("sale_34"),

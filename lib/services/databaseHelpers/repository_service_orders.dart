@@ -131,4 +131,43 @@ class RepositoryServiceOrders {
     }
     return orders;
   }
+
+  // update Order
+  static Future updateOrderOfClient(Order oldOrder, Order newOrder) async {
+    for (final product in oldOrder.products) {
+      product.stock = product.quantity + product.stock;
+    }
+    await RepositoryServiceProducts.updateAllStockProduct(oldOrder.products);
+    await RepositoryServiceOrderDetail.deleteProductsOfOrder(oldOrder.id);
+
+    for (final product in newOrder.products) {
+      product.stock = product.stock - product.quantity;
+      final orderDetail = OrderDetail(
+        orderid: newOrder.id,
+        productid: product.id,
+        quantity: product.quantity,
+      );
+      await RepositoryServiceOrderDetail.addProduct(orderDetail);
+    }
+    await RepositoryServiceProducts.updateAllStockProduct(newOrder.products);
+
+    final sql = '''UPDATE ${DatabaseCreator.orders_tbl}
+      SET ${DatabaseCreator.orders_paid}   = ? ,
+          ${DatabaseCreator.orders_paymentDate}= ? ,
+          ${DatabaseCreator.orders_pricing} = ?
+      WHERE  ${DatabaseCreator.orders_id}  = ?
+    
+    ''';
+    List<dynamic> params = [
+      newOrder.paid,
+      newOrder.paymentDate.millisecondsSinceEpoch,
+      newOrder.pricing,
+      newOrder.id,
+    ];
+
+    final result = await db.rawUpdate(sql, params);
+
+    DatabaseCreator.databaseLog('Update Order', sql, null, result, params);
+    return result;
+  }
 }

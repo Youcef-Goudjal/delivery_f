@@ -63,10 +63,10 @@ class RepositoryServiceOrderDetail {
     return result;
   }
 
-  // deleting product
-  static Future<int> deleteProductfromOrderDeatil(int id) async {
+  // deleting products on order
+  static Future<int> deleteProductsOfOrder(int id) async {
     final sql = '''DELETE FROM ${DatabaseCreator.orderDetail_tbl}
-    WHERE ${DatabaseCreator.orderDetail_id} = ?
+    WHERE ${DatabaseCreator.orderDetail_orderID} = ?
     ''';
     List<dynamic> params = [id];
     final result = await db.rawDelete(sql, params);

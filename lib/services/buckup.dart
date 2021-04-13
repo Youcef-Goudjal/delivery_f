@@ -78,16 +78,20 @@ class Backup {
       );
       var bytes = downloadToFile.readAsBytesSync();
       var excel = Excel.decodeBytes(bytes);
+      final xc = 0;
       for (final tab in tabs) {
         final sheet = excel.tables[tab];
-        final cols = sheet.rows.first;
         //print(cols);
         int i = 0;
-        for (var row in sheet.rows) {
-          if (i == 0) {
-            i++;
-          } else {
-            insert(cols, row, tab);
+
+        if (sheet.maxRows > 1) {
+          final cols = sheet.rows.first;
+          for (var row in sheet.rows) {
+            if (i == 0) {
+              i++;
+            } else {
+              insert(cols, row, tab);
+            }
           }
         }
       }
@@ -99,6 +103,7 @@ class Backup {
         "enable": false,
       });
     } catch (e) {
+      print(e);
       Fluttertoast.showToast(
         msg: "الملف غير موجود",
         backgroundColor: Colors.red,

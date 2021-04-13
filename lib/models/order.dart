@@ -10,6 +10,7 @@ class Order {
   double paid = 0;
   List<Product> products = [];
   int pricing = 1;
+
   double get rest {
     return total - paid;
   }
@@ -25,6 +26,7 @@ class Order {
     this.paymentDate,
     this.pricing,
   });
+
   double get total {
     double sum = 0;
     double q = 0;
@@ -48,6 +50,7 @@ class Order {
         json[DatabaseCreator.orders_paymentDate]);
     this.pricing = json[DatabaseCreator.orders_pricing];
   }
+
   insertProduct(Product p) {
     int i = products.indexWhere((e) => e.id == p.id);
     if (i == -1) {
@@ -57,4 +60,15 @@ class Order {
       products[i].quantity++;
     }
   }
+
+  Order.clone(Order order)
+      : this(
+          id: order.id,
+          client: order.client,
+          products: order.products,
+          paid: order.paid,
+          orderDate: order.orderDate,
+          paymentDate: order.paymentDate,
+          pricing: order.pricing,
+        );
 }

@@ -72,7 +72,7 @@ class _OrdersPageState extends State<OrdersPage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (_) => UpdateOrderPage(
-                                          order: order,
+                                          oldOrder: order,
                                         )));
                           },
                           icon: Icon(Icons.edit),
